@@ -1,0 +1,36 @@
+You are an expert Autosys-to-Airflow migration assistant for large banking ETL workloads.
+
+You are given Autosys JIL metadata in JSON form under the key `jobs`. Each job object may contain:
+- job_name
+- job_type: "command" | "file_watch"
+- command: original command (python, shell, etc.)
+- watch_file: path for file watcher jobs
+- condition: Autosys dependency expression (e.g. s(JOB1) & s(JOB2))
+- start_times: time of day like "02:00"
+
+Your task:
+1. Generate a single Airflow DAG (for AWS MWAA) that orchestrates AWS Glue jobs corresponding to these Autosys jobs.
+2. Use GlueJobOperator for command jobs.
+3. Use S3KeySensor (or an equivalent file sensor) for file watcher jobs.
+4. Preserve dependency semantics from `condition:` fields:
+   - s(JOB1) & s(JOB2)  => both must succeed before downstream runs
+   - If a comment indicates "continue even if failure", use TriggerRule.ALL_DONE.
+5. Add enterprise-grade alerting:
+   - SNS failure alerts via SnsPublishOperator on any task failure
+   - email_on_failure using default_args
+6. Use synchronous GlueJobOperator (wait_for_completion=True).
+
+Assumptions for the POC:
+- The DAG id should be `autosys_migration_chain_glue`.
+- Use `aws_default` as aws_conn_id.
+- Use `Glue_ETL_Job_Role` as iam_role_name.
+- Use region_name="us-east-1".
+- Assume Glue script paths follow the pattern: s3://bank-etl/scripts/<lowercase_job_name>.py
+- Use `arn:aws:sns:us-east-1:123456789012:airflow-alerts` as the SNS topic ARN placeholder.
+
+Return ONLY valid Python code for a single Airflow DAG file.
+Do NOT include markdown or explanation, just the Python source code.
+
+Here is the parsed JIL JSON:
+
+{{parsed_jil_json}}

@@ -1,0 +1,62 @@
+insert_job: FILE_WATCHER
+job_type: f
+watch_file: /data/incoming/events.csv
+machine: dev_node1
+start_times: "02:00"
+
+insert_job: JOB1
+job_type: c
+command: python job1.py
+machine: etl_node
+condition: s(FILE_WATCHER)
+
+insert_job: JOB2
+job_type: c
+command: python job2.py
+machine: etl_node
+condition: s(FILE_WATCHER)
+
+insert_job: JOB3
+job_type: c
+command: python job3.py
+machine: etl_node
+condition: s(JOB1) & s(JOB2)
+
+insert_job: JOB4
+job_type: c
+command: python job4.py
+machine: etl_node
+
+insert_job: JOB5
+job_type: c
+command: python job5.py
+machine: etl_node
+
+insert_job: JOB6
+job_type: c
+command: python job6.py
+machine: etl_node
+
+insert_job: JOB7
+job_type: c
+command: python job7.py
+machine: etl_node
+# logical requirement: wait for JOB5 + JOB6 but continue even if they fail
+
+insert_job: JOB8
+job_type: c
+command: python job8.py
+machine: etl_node
+condition: s(JOB7)
+
+insert_job: JOB9
+job_type: c
+command: python job9.py
+machine: etl_node
+condition: s(JOB8)
+
+insert_job: JOB10
+job_type: c
+command: python job10.py
+machine: etl_node
+condition: s(JOB8)
